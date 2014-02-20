@@ -1,4 +1,7 @@
 from granoclient.common import GranoResource, GranoCollection
+from granoclient.schema import SchemaCollection
+from granoclient.entity import EntityCollection
+
 
 class Project(GranoResource):
     """ A project within grano. This type serves as a namespace for use 
@@ -11,6 +14,18 @@ class Project(GranoResource):
     def endpoint(self):
         return '/projects/%s' % self['slug']
 
+    @property
+    def schemata(self):
+        """ A collection of the :class:`granoclient.Schema` associated with
+        this project. """
+        return SchemaCollection(self.client, self['slug'])
+
+    @property
+    def entities(self):
+        """ A collection of the :class:`granoclient.Entity` associated with
+        this project. """
+        return EntityCollection(self.client, params={'project': self['slug']})
+
 
 class ProjectCollection(GranoCollection):
     """ Represents all the :class:`granoclient.Project` currently available
@@ -21,8 +36,8 @@ class ProjectCollection(GranoCollection):
     clazz = Project
     endpoint = '/projects'
 
-    def __init__(self, client, data):
-        super(ProjectCollection, self).__init__(client, data)
+    def __init__(self, client):
+        super(ProjectCollection, self).__init__(client)
 
     def by_slug(self, slug):
         """ Load a project based on its slug, i.e. its unique designation.

@@ -90,12 +90,12 @@ class Query(GranoObject):
     @property
     def next(self):
         """ Return a derived query for the next page of elements. """
-        return Query(self.client, self.clazzz, self.data.get('next_url'))
+        return Query(self.client, self.clazz, self.data.get('next_url'))
 
     @property
     def prev(self):
         """ Return a derived query for the previous page of elements. """
-        return Query(self.client, self.clazzz, self.data.get('next_url'))
+        return Query(self.client, self.clazz, self.data.get('next_url'))
 
     def __len__(self):
         return self.total
@@ -104,10 +104,19 @@ class Query(GranoObject):
 class GranoCollection(GranoObject):
     """ A REST collection provided by the grano API. """
 
+    query_clazz = Query
+
+    def __init__(self, client, params={}):
+        super(GranoCollection, self).__init__(client, None)
+        self.params = params
+
     def query(self, params=None):
         """ Begin querying the collection. The query can further be refined
         using the methods of the returned :class:`granoclient.Query`."""
-        return Query(self.client, self.clazz, self.endpoint, params=params)
+        if params is None:
+            params = {}
+        params.update(self.params)
+        return self.query_clazz(self.client, self.clazz, self.endpoint, params=params)
 
     def all(self):
         """ Iterate over all available resources in the collection.

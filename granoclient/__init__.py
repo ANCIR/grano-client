@@ -3,6 +3,8 @@ from granoclient.base import NotFound, InvalidRequest
 from granoclient.base import Client
 from granoclient.common import Query
 from granoclient.project import Project, ProjectCollection
+from granoclient.schema import Schema, SchemaCollection
+from granoclient.entity import Entity, EntityCollection
 
 
 class Grano(object):
@@ -31,8 +33,20 @@ class Grano(object):
         """ Returns a :class:`granoclient.ProjectCollection` of all available 
         projects in this instance of grano. """
         if not hasattr(self, '_projects'):
-            self._projects = ProjectCollection(self.client, None)
+            self._projects = ProjectCollection(self.client)
         return self._projects
+
+    @property
+    def entities(self):
+        """ Returns a :class:`granoclient.EntityCollection` of all available 
+        entities in this instance of grano.
+
+        Consider using the ``entities`` of a specific :class:`granoclient.Project`
+        instead.
+        """
+        if not hasattr(self, '_entities'):
+            self._entities = EntityCollection(self.client)
+        return self._entities
 
     def get(self, slug):
         """ Get a project. Shortcut to ``Grano.projects.by_slug()``.
