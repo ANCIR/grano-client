@@ -43,6 +43,10 @@ class GranoServerException(GranoException):
         return '<GranoServerException(%s, "%s")>' % (self.status, self.message)
 
 
+class InvalidRequest(GranoServerException): pass
+class NotFound(GranoServerException): pass
+
+
 class Client(object):
     """ Grano client class; handles configuration and network
     settings. Do not instantiate directly, use ``Grano`` instead. """
@@ -92,6 +96,10 @@ class Client(object):
             data = response.json()
         except ValueError:
             raise GranoException('Server did not respond with JSON data.')
+        if response.status_code == 400:
+            raise InvalidRequest(data)
+        if response.status_code == 404:
+            raise NotFound(data)
         if (not response.ok) and 'status' in data and 'message' in data:
             raise GranoServerException(data)
         return response.status_code, data
@@ -105,20 +113,3 @@ class Client(object):
         response = self.session.post(self.path(endpoint),
             allow_redirects=True, data=data)
         return self.evaluate(response)
-
-
-class GranoObject(object):
-    """ Base class for objects to layer over the grano REST API. """
-
-    def __init__(self, client, data):
-        self.client = client
-        self._data = data
-
-
-class GranoCollection(GranoObject):
-    """ A REST collection provided by the grano API. """
-    pass
-
-
-
-
