@@ -10,7 +10,7 @@ class Relation(GranoResource):
 
     @property
     def endpoint(self):
-        return '/relations/%s' % self['slug']
+        return '/relations/%s' % self['id']
 
     @property
     def project(self):

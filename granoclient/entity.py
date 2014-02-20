@@ -11,7 +11,7 @@ class Entity(GranoResource):
 
     @property
     def endpoint(self):
-        return '/entities/%s' % self['slug']
+        return '/entities/%s' % self['id']
 
     @property
     def project(self):
