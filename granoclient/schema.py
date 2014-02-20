@@ -39,7 +39,7 @@ class SchemaCollection(GranoCollection):
         self.project_slug = project_slug
         super(SchemaCollection, self).__init__(client)
 
-    def by_name(self, slug):
+    def by_name(self, name):
         """ Load a schema based on its name, i.e. its unique designation.
 
         :param name: the name of the project to be retrieved.
@@ -57,4 +57,5 @@ class SchemaCollection(GranoCollection):
         """
         if isinstance(data, Schema):
             data = data._data
-        return self._create(data)
+        s, data = self.client.post(self.endpoint, data=data)
+        return self.clazz(self.client, self.endpoint, data)
