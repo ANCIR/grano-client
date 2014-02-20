@@ -1,6 +1,7 @@
 from granoclient.common import GranoResource, GranoCollection
 from granoclient.schema import SchemaCollection
 from granoclient.entity import EntityCollection
+from granoclient.relation import RelationCollection
 
 
 class Project(GranoResource):
@@ -25,6 +26,12 @@ class Project(GranoResource):
         """ A collection of the :class:`granoclient.Entity` associated with
         this project. """
         return EntityCollection(self.client, params={'project': self['slug']})
+
+    @property
+    def relations(self):
+        """ A collection of the :class:`granoclient.Relation` associated with
+        this project. """
+        return RelationCollection(self.client, params={'project': self['slug']})
 
 
 class ProjectCollection(GranoCollection):

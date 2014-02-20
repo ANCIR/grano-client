@@ -13,6 +13,26 @@ class Entity(GranoResource):
     def endpoint(self):
         return '/entities/%s' % self['slug']
 
+    @property
+    def project(self):
+        """ The :class:`granoclient.Project` to which this entity belongs. """
+        from granoclient.project import Project
+        return Project(self.client, self['project'])
+
+    @property
+    def inbound(self):
+        """ Inbound relations as a filtered
+        :class:`granoclient.RelationCollection`. """
+        from granoclient.relation import RelationCollection
+        return RelationCollection(self, params={'target': self.id})
+
+    @property
+    def outbound(self):
+        """ Outbound relations as a filtered 
+        :class:`granoclient.RelationCollection`. """
+        from granoclient.relation import RelationCollection
+        return RelationCollection(self, params={'source': self.id})
+
 
 class EntityCollection(GranoCollection):
     """ Represents all the :class:`granoclient.Entity` currently available
@@ -38,6 +58,10 @@ class EntityCollection(GranoCollection):
         :param data: A dictionary with the entity attributes, ``schemata`` 
             and ``properties`` are required.
         """
+
+        if 'project' in self.params and not 'project' in data:
+            data['project'] = self.params.get('project')
+
         if isinstance(data, Entity):
             data = data._data
         schemata = data.get('schemata')

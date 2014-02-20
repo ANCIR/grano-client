@@ -5,6 +5,7 @@ from granoclient.common import Query
 from granoclient.project import Project, ProjectCollection
 from granoclient.schema import Schema, SchemaCollection
 from granoclient.entity import Entity, EntityCollection
+from granoclient.relation import Relation, RelationCollection
 
 
 class Grano(object):
@@ -41,8 +42,20 @@ class Grano(object):
         """ Returns a :class:`granoclient.EntityCollection` of all available 
         entities in this instance of grano.
 
-        Consider using the ``entities`` of a specific :class:`granoclient.Project`
-        instead.
+        Consider using the ``entities`` property of a specific
+        :class:`granoclient.Project` instead.
+        """
+        if not hasattr(self, '_entities'):
+            self._entities = EntityCollection(self.client)
+        return self._entities
+
+    @property
+    def relations(self):
+        """ Returns a :class:`granoclient.RelationCollection` of all available 
+        relation in this instance of grano.
+
+        Consider using the ``relations`` property of a specific
+        :class:`granoclient.Project` instead.
         """
         if not hasattr(self, '_entities'):
             self._entities = EntityCollection(self.client)

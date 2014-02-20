@@ -66,6 +66,17 @@ class Query(GranoObject):
             self.reload()
         return self._data
 
+    def filter(self, name, value):
+        """ Apply a filter to the query and return a modified version.
+
+        :param name: the name of the query argument to add.
+        :param value: the value of the query argument to add.
+        """
+        params = self.params.copy()
+        params[name] = value
+        return self.__class__(self.client, self.clazz, self.endpoint,
+            params=params)
+
     @property
     def results(self):
         """ The current page's results. """
@@ -90,12 +101,14 @@ class Query(GranoObject):
     @property
     def next(self):
         """ Return a derived query for the next page of elements. """
-        return Query(self.client, self.clazz, self.data.get('next_url'))
+        return self.__class__(self.client, self.clazz,
+            self.data.get('next_url'))
 
     @property
     def prev(self):
         """ Return a derived query for the previous page of elements. """
-        return Query(self.client, self.clazz, self.data.get('next_url'))
+        return self.__class__(self.client, self.clazz,
+            self.data.get('next_url'))
 
     def __len__(self):
         return self.total
