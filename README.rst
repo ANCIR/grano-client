@@ -1,7 +1,7 @@
 grano client
 ============
 
-This library provides a Python client for the [grano API](http://grano.pudo.org/rest_api.html). ``grano`` is a web-based framework for the storage, analysis and presentation of social network information. The tool provides building blocks for custom, data-driven investigative solutions.
+This library provides a Python client for the `grano API <http://grano.pudo.org/rest_api.html>`_. ``grano`` is a web-based framework for the storage, analysis and presentation of social network information. The tool provides building blocks for custom, data-driven investigative solutions.
 
 
 Usage
@@ -26,13 +26,13 @@ The easiest way to install the client is via the Python package index and pip/ea
 
     pip install grano-client
 
-If you want to develop the client library's code, check out the [repository](http://github.com/pudo/grani-client) and set up dependencies etc. with the command:
+If you want to develop the client library's code, check out the `repository <http://github.com/pudo/grani-client>`_ and set up dependencies etc. with the command:
 
 .. code-block:: bash
 
     python setup.py develop
 
-``grano-client`` depends on [requests](http://requests.readthedocs.org/en/latest/) newer than 2.2.
+``grano-client`` depends on `requests <http://requests.readthedocs.org/en/latest/>`_ newer than 2.2.
 
 
 Configuration
@@ -50,7 +50,9 @@ A simple configuration file for ``grano-client`` might look like this:
 
     [client]
     host = http://api.grano.io
-    api_key = xxxxxxxxxxxxxxx (see user profile in grano)
+    
+    # see user profile in grano:
+    api_key = xxxxxxxxxxxxxxx
 
 
 License
