@@ -7,19 +7,40 @@ class GranoObject(object):
         self.client = client
         self._data = data
 
-    def __getattr__(self, name):
-        if not name in self._data:
-            raise AttributeError
-        return self._data[name]
+    def __getattribute__(self, name):
+        if name != '_data' and self._data and name in self._data:
+            return self._data[name]
+        return object.__getattribute__(self, name)
+
+    def __setattr__(self, name, value):
+        if hasattr(self, '_data') and self._data is not None \
+            and name in self._data.keys():
+            self._data[name] = value
+        else:
+            return object.__setattr__(self, name, value)
 
     def __getitem__(self, name):
-        return self.__getattr__(name)
+        return self._data[name]
+
+    def __setitem__(self, name, value):
+        self._data[name] = value
 
 
-class GranoResource(object):
+class GranoResource(GranoObject):
     """ A specific resource that is part of the grano API. """
 
     resource_key = 'id'
+
+    def reload(self):
+        """ Reload the resource from the server. This is useful when the resource is 
+        a shortened index representation which needs to be traded in for a complete
+        representation of the resource."""
+        s, self._data = self.client.get(self.endpoint)
+
+    def save(self):
+        """ Update the server with any local changes, then update the local version 
+        with the returned value from the server. """
+        s, self._data = self.client.post(self.endpoint, self._data)
 
     def __repr__(self):
         return '<%s(%s)>' % (self.__class__.__name__, self[self.resource_key])
@@ -106,7 +127,6 @@ class GranoCollection(GranoObject):
 
     def _create(self, data):
         s, data = self.client.post(self.endpoint, data=data)
-        print s, data
         return self.clazz(self.client, data)
 
     def __iter__(self):

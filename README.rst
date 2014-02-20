@@ -14,7 +14,11 @@ The Python client library can be used to edit projects, data schemata, entities 
     import granoclient
     
     client = granoclient.Grano()
+    for project in client.projects:
+        print project
 
+    project = client.get('my-project')
+    
 
 Installation
 ------------

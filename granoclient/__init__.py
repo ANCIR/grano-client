@@ -1,4 +1,5 @@
 from granoclient.base import GranoException, GranoServerException
+from granoclient.base import NotFound, InvalidRequest
 from granoclient.base import Client
 from granoclient.common import Query
 from granoclient.project import Project, ProjectCollection

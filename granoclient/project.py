@@ -7,6 +7,10 @@ class Project(GranoResource):
     
     resource_key = 'slug'
 
+    @property
+    def endpoint(self):
+        return '/projects/%s' % self['slug']
+
 
 class ProjectCollection(GranoCollection):
     """ Represents all the :class:`granoclient.Project` currently available
