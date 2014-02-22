@@ -24,14 +24,14 @@ class Entity(GranoResource):
         """ Inbound relations as a filtered
         :class:`granoclient.RelationCollection`. """
         from granoclient.relation import RelationCollection
-        return RelationCollection(self, params={'target': self.id})
+        return RelationCollection(self.client, params={'target': self.id})
 
     @property
     def outbound(self):
         """ Outbound relations as a filtered 
         :class:`granoclient.RelationCollection`. """
         from granoclient.relation import RelationCollection
-        return RelationCollection(self, params={'source': self.id})
+        return RelationCollection(self.client, params={'source': self.id})
 
 
 class EntityCollection(GranoCollection):
