@@ -79,7 +79,7 @@ class Client(object):
             headers = {'Accept': 'application/json',
                        'Content-Type': 'application/json'}
             if self.api_key:
-                    headers['Authorization'] = self.api_key
+                headers['X-Grano-API-Key'] = self.api_key
             self._session = requests.Session()
             self._session.headers.update(headers)
         return self._session
