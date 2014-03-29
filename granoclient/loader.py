@@ -82,16 +82,20 @@ class EntityLoader(ObjectLoader):
             q = q.filter(key + name, value)
         
         try:
-            data = {
-                'schemata': self.schemata,
-                'properties': self.properties
-            }
-            try:
-                self._entity = q.results.next()
-                self._entity._data.update(data)
-                self._entity.save()
-            except StopIteration:
+            entities = list(q.results)
+            if len(entities) == 0:
+                data = {
+                    'schemata': self.schemata,
+                    'properties': self.properties
+                }
                 self._entity = self.loader.project.entities.create(data)
+            else:
+                if len(entities) > 1:
+                    log.warn("Ambiguous update: %r" % entities)
+                self._entity = entities[0]
+                self._entity._data['schemata'].extend(self.schemata)
+                self._entity._data['properties'].update(self.properties)
+                self._entity.save()
         except InvalidRequest, inv:
             log.warning("Validation error: %r", inv)
 
@@ -123,18 +127,24 @@ class RelationLoader(ObjectLoader):
             q = q.filter(key + name, value)
         
         try:
-            data = {
-                'schema': self.schemata.pop(),
-                'source': self.source.entity.id,
-                'target': self.target.entity.id,
-                'properties': self.properties
-            }
-            try:
-                rel = q.results.next()
-                rel._data.update(data)
-                rel.save()
-            except StopIteration:
+            relations = list(q.results)
+            if len(relations) == 0:
+                data = {
+                    'schema': self.schemata.pop(),
+                    'source': self.source.entity.id,
+                    'target': self.target.entity.id,
+                    'properties': self.properties
+                }
                 self.loader.project.relations.create(data)
+            else:
+                if len(relations) > 1:
+                    log.warn("Ambiguous update: %r" % relations)
+                rel = relations[0]
+                rel._data['schema'] = self.schemata.pop()
+                rel._data['source'] = self.source.entity.id
+                rel._data['target'] = self.target.entity.id
+                rel._data['properties'].update(self.properties)
+                rel.save()
         except InvalidRequest, inv:
             log.warning("Validation error: %r", inv)
 
