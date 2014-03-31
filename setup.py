@@ -11,7 +11,7 @@ setup(
     keywords='data client rest grano sna ddj journalism',
     author='Friedrich Lindenberg',
     author_email='friedrich@pudo.org',
-    url='https://github.com/pudo/grano-client',
+    url='https://github.com/granoproject/grano-client',
     license='MIT',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     zip_safe=False,
