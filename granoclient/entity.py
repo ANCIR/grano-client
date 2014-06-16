@@ -53,9 +53,9 @@ class EntityCollection(GranoCollection):
         return self.clazz(self.client, data)
 
     def create(self, data):
-        """ Create a new entity. 
+        """ Create a new entity.
 
-        :param data: A dictionary with the entity attributes, ``schemata`` 
+        :param data: A dictionary with the entity attributes, ``schemata``
             and ``properties`` are required.
         """
 
@@ -69,4 +69,5 @@ class EntityCollection(GranoCollection):
         for schema in schemata:
             if isinstance(schema, Schema):
                 schema = schema.name
+            data['schemata'].append(schema)
         return self._create(data)
