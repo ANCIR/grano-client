@@ -4,9 +4,9 @@ from granoclient.schema import Schema
 
 class Entity(GranoResource):
     """ An entity within grano. This type serves as a node, which can be
-    used to store data (in the form of properties), and can be part of 
+    used to store data (in the form of properties), and can be part of
     relations.. """
-    
+
     resource_key = 'id'
 
     @property
@@ -28,10 +28,15 @@ class Entity(GranoResource):
 
     @property
     def outbound(self):
-        """ Outbound relations as a filtered 
+        """ Outbound relations as a filtered
         :class:`granoclient.RelationCollection`. """
         from granoclient.relation import RelationCollection
         return RelationCollection(self.client, params={'source': self.id})
+
+    def get_graph(self, depth=2):
+        entity_graph = EntityGraph(self.client,
+            params={'id': self.id, 'depth': depth})
+        return entity_graph.get_data()
 
 
 class EntityCollection(GranoCollection):
@@ -71,3 +76,26 @@ class EntityCollection(GranoCollection):
                 schema = schema.name
             data['schemata'].append(schema)
         return self._create(data)
+
+
+class EntityGraph(object):
+    """ An entity within grano. This type serves as a node, which can be
+    used to store data (in the form of properties), and can be part of
+    relations.. """
+
+    resource_key = 'id'
+
+    def __init__(self, client, params={}):
+        self.client = client
+        self.params = params
+
+    @property
+    def endpoint(self):
+        return '/entities/%(id)s/graph?depth=%(depth)s' % {
+            'id': self.params['id'],
+            'depth': self.params['depth']
+        }
+
+    def get_data(self):
+        s, data = self.client.get(self.endpoint)
+        return data
