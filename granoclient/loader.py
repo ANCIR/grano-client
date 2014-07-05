@@ -1,4 +1,5 @@
 import logging
+from threading import RLock
 
 from granoclient.base import InvalidRequest
 
@@ -48,16 +49,29 @@ class ObjectLoader(object):
             'active': True
         }
 
+    def lock(self):
+        sig = self.signature
+        if sig not in self.loader.locks:
+            self.loader.locks[sig] = RLock()
+        return self.loader.locks[sig]
+
 
 class EntityLoader(ObjectLoader):
     """ A factory object for entities, used to set the schemata and
     properties for an entity. """
-    
+
     def __init__(self, loader, schemata, source_url=None):
         self._setup(loader, schemata + ['base'])
         self.unique('name', only_active=False)
         self.source_url = source_url
         self._entity = None
+
+    @property
+    def signature(self):
+        keys = []
+        for p, a in self.update_criteria:
+            keys.append(self.properties.get(p, {}).get('value'))
+        return tuple(keys)
 
     @property
     def entity(self):
@@ -69,31 +83,32 @@ class EntityLoader(ObjectLoader):
         """ Save the entity to the database. Do this only once, after all
         properties have been set. """
 
-        q = self.loader.project.entities.query()
-        for name, only_active in self.update_criteria:
-            value = self.properties.get(name).get('value')
-            key = 'property-'
-            if not only_active:
-                key = key + 'aliases-'
-            q = q.filter(key + name, value)
+        with self.lock():
+            q = self.loader.project.entities.query()
+            for name, only_active in self.update_criteria:
+                value = self.properties.get(name).get('value')
+                key = 'property-'
+                if not only_active:
+                    key = key + 'aliases-'
+                q = q.filter(key + name, value)
 
-        try:
-            entities = list(q.results)
-            if len(entities) == 0:
-                data = {
-                    'schemata': self.schemata,
-                    'properties': self.properties
-                }
-                self._entity = self.loader.project.entities.create(data)
-            else:
-                if len(entities) > 1:
-                    log.warn("Ambiguous update: %r" % entities)
-                self._entity = entities[0]
-                self._entity._data['schemata'].extend(self.schemata)
-                self._entity._data['properties'].update(self.properties)
-                self._entity.save()
-        except InvalidRequest, inv:
-            log.warning("Validation error: %r", inv)
+            try:
+                entities = list(q.results)
+                if len(entities) == 0:
+                    data = {
+                        'schemata': self.schemata,
+                        'properties': self.properties
+                    }
+                    self._entity = self.loader.project.entities.create(data)
+                else:
+                    if len(entities) > 1:
+                        log.warn("Ambiguous update: %r" % entities)
+                    self._entity = entities[0]
+                    self._entity._data['schemata'].extend(self.schemata)
+                    self._entity._data['properties'].update(self.properties)
+                    self._entity.save()
+            except InvalidRequest, inv:
+                log.warning("Validation error: %r", inv)
 
 
 class RelationLoader(ObjectLoader):
@@ -106,42 +121,50 @@ class RelationLoader(ObjectLoader):
         self.source = source
         self.target = target
 
+    @property
+    def signature(self):
+        keys = [self.source.signature, self.target.signature]
+        for p, a in self.update_criteria:
+            keys.append(self.properties.get(p, {}).get('value'))
+        return tuple(keys)
+
     def save(self):
         """ Save the relation to the database. Do this only once, after all
         properties have been set. """
 
-        q = self.loader.project.relations.query()
-        q = q.filter('source', self.source.entity.id)
-        q = q.filter('target', self.target.entity.id)
+        with self.lock():
+            q = self.loader.project.relations.query()
+            q = q.filter('source', self.source.entity.id)
+            q = q.filter('target', self.target.entity.id)
 
-        for name, only_active in self.update_criteria:
-            value = self.properties.get(name).get('value')
-            key = 'property-'
-            if not only_active:
-                key = key + 'aliases-'
-            q = q.filter(key + name, value)
+            for name, only_active in self.update_criteria:
+                value = self.properties.get(name).get('value')
+                key = 'property-'
+                if not only_active:
+                    key = key + 'aliases-'
+                q = q.filter(key + name, value)
 
-        try:
-            relations = list(q.results)
-            if len(relations) == 0:
-                data = {
-                    'schema': self.schemata.pop(),
-                    'source': self.source.entity.id,
-                    'target': self.target.entity.id,
-                    'properties': self.properties
-                }
-                self.loader.project.relations.create(data)
-            else:
-                if len(relations) > 1:
-                    log.warn("Ambiguous update: %r" % relations)
-                rel = relations[0]
-                rel._data['schema'] = self.schemata.pop()
-                rel._data['source'] = self.source.entity.id
-                rel._data['target'] = self.target.entity.id
-                rel._data['properties'].update(self.properties)
-                rel.save()
-        except InvalidRequest, inv:
-            log.warning("Validation error: %r", inv)
+            try:
+                relations = list(q.results)
+                if len(relations) == 0:
+                    data = {
+                        'schema': self.schemata.pop(),
+                        'source': self.source.entity.id,
+                        'target': self.target.entity.id,
+                        'properties': self.properties
+                    }
+                    self.loader.project.relations.create(data)
+                else:
+                    if len(relations) > 1:
+                        log.warn("Ambiguous update: %r" % relations)
+                    rel = relations[0]
+                    rel._data['schema'] = self.schemata.pop()
+                    rel._data['source'] = self.source.entity.id
+                    rel._data['target'] = self.target.entity.id
+                    rel._data['properties'].update(self.properties)
+                    rel.save()
+            except InvalidRequest, inv:
+                log.warning("Validation error: %r", inv)
 
 
 class Loader(object):
@@ -152,6 +175,7 @@ class Loader(object):
     def __init__(self, project, source_url=None):
         self.source_url = source_url
         self.project = project
+        self.locks = {}
 
     def make_entity(self, schemata, source_url=None):
         """ Create an entity loader, i.e. a construction helper for entities.
