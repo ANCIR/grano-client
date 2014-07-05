@@ -1,9 +1,9 @@
+import os
 from setuptools import setup, find_packages
-
 
 setup(
     name='grano-client',
-    version='0.3.0',
+    version=os.environ.get('GRANO_RELEASE', '0.3.0'),
     description="Client library for grano, a social network analysis tool.",
     long_description=open('README.rst').read(),
     classifiers=[
