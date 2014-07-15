@@ -47,10 +47,11 @@ class GranoResource(GranoObject):
         """ Update the server with any local changes, then update the local version 
         with the returned value from the server. """
         s, self._data = self.client.post(self.endpoint, self._data, files=self._files)
+        # clear files so that they aren't re-uploaded
+        self._files = {}
 
     def set_file_property(self, name, file, source_url):
         self.properties[name] = {
-            'value': name,
             'source_url': source_url,
             'active': True
         }
