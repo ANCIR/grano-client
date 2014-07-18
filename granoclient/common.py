@@ -56,7 +56,7 @@ class GranoResource(GranoObject):
             'active': True
         }
         self._files[name] = (os.path.basename(file.name), file,
-                             mimetypes.guess_type(file.name, strict=False),
+                             mimetypes.guess_type(file.name, strict=False)[0],
                              {'Expires': '0'})
 
     def __repr__(self):
