@@ -52,6 +52,7 @@ class GranoResource(GranoObject):
 
     def set_file_property(self, name, file, source_url):
         self.properties[name] = {
+            'name': name,
             'source_url': source_url,
             'active': True
         }
@@ -165,7 +166,13 @@ class GranoCollection(GranoObject):
             query = query.next
 
     def _create(self, data):
-        s, data = self.client.post(self.endpoint, data=data)
+        if 'files' in data:
+            data = data.copy()
+            files = data.pop('files')
+        else:
+            files = {}
+
+        s, data = self.client.post(self.endpoint, data=data, files=files)
         return self.clazz(self.client, data)
 
     def __iter__(self):

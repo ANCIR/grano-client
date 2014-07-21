@@ -1,4 +1,6 @@
+import os
 import logging
+import mimetypes
 from threading import RLock
 
 from granoclient.base import InvalidRequest
@@ -15,6 +17,7 @@ class ObjectLoader(object):
         self.schemata = schemata
         self.properties = {}
         self.update_criteria = set()
+        self.files = {}
 
     def unique(self, name, only_active=True):
         """ Define a unique field for this entity or relation. Each unique
@@ -44,10 +47,16 @@ class ObjectLoader(object):
             log.warning('No source for property %s.', name)
         self.properties[name] = {
             'name': name,
-            'value': value if value is None else unicode(value),
             'source_url': source_url,
             'active': True
         }
+        # add it to files instead if it's a file-like object
+        if callable(getattr(value, 'read', None)) and hasattr(value, 'name'):
+            self.files[name] = (os.path.basename(value.name), value,
+                                mimetypes.guess_type(value.name, strict=False)[0],
+                                {'Expires': '0'})
+        else:
+            self.properties[name]['value'] = value if value is None else unicode(value)
 
     def lock(self):
         sig = self.signature
@@ -97,7 +106,8 @@ class EntityLoader(ObjectLoader):
                 if len(entities) == 0:
                     data = {
                         'schemata': self.schemata,
-                        'properties': self.properties
+                        'properties': self.properties,
+                        'files': self.files
                     }
                     self._entity = self.loader.project.entities.create(data)
                 else:
@@ -106,6 +116,7 @@ class EntityLoader(ObjectLoader):
                     self._entity = entities[0]
                     self._entity._data['schemata'].extend(self.schemata)
                     self._entity._data['properties'].update(self.properties)
+                    self._entity._files.update(self.files)
                     self._entity.save()
             except InvalidRequest, inv:
                 log.warning("Validation error: %r", inv)
@@ -151,7 +162,8 @@ class RelationLoader(ObjectLoader):
                         'schema': self.schemata.pop(),
                         'source': self.source.entity.id,
                         'target': self.target.entity.id,
-                        'properties': self.properties
+                        'properties': self.properties,
+                        'files': self.files
                     }
                     self.loader.project.relations.create(data)
                 else:
@@ -162,6 +174,7 @@ class RelationLoader(ObjectLoader):
                     rel._data['source'] = self.source.entity.id
                     rel._data['target'] = self.target.entity.id
                     rel._data['properties'].update(self.properties)
+                    rel._files.update(self.files)
                     rel.save()
             except InvalidRequest, inv:
                 log.warning("Validation error: %r", inv)
