@@ -70,7 +70,7 @@ class EntityLoader(ObjectLoader):
     properties for an entity. """
 
     def __init__(self, loader, schemata, source_url=None):
-        self._setup(loader, schemata + ['base'])
+        self._setup(loader, schemata)
         self.unique('name', only_active=False)
         self.source_url = source_url
         self._entity = None

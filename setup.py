@@ -1,11 +1,17 @@
 import os
 from setuptools import setup, find_packages
 
+VERSION = os.path.join(os.path.dirname(__file__), 'VERSION')
+VERSION = open(VERSION, 'r').read().strip()
+
+README = os.path.join(os.path.dirname(__file__), 'README.rst')
+README = open(README, 'r').read().strip()
+
 setup(
     name='grano-client',
-    version=os.environ.get('GRANO_RELEASE', '0.3.0'),
+    version=VERSION,
     description="Client library for grano, a social network analysis tool.",
-    long_description=open('README.rst').read(),
+    long_description=README,
     classifiers=[
         ],
     keywords='data client rest grano sna ddj journalism',
