@@ -1,3 +1,5 @@
+import os
+import mimetypes
 #from granoclient.base import Client
 
 class GranoObject(object):
@@ -31,6 +33,10 @@ class GranoResource(GranoObject):
 
     resource_key = 'id'
 
+    def __init__(self, *args, **kwargs):
+        super(GranoResource, self).__init__(*args, **kwargs)
+        self._files = {}
+
     def reload(self):
         """ Reload the resource from the server. This is useful when the resource is 
         a shortened index representation which needs to be traded in for a complete
@@ -40,7 +46,19 @@ class GranoResource(GranoObject):
     def save(self):
         """ Update the server with any local changes, then update the local version 
         with the returned value from the server. """
-        s, self._data = self.client.post(self.endpoint, self._data)
+        s, self._data = self.client.post(self.endpoint, self._data, files=self._files)
+        # clear files so that they aren't re-uploaded
+        self._files = {}
+
+    def set_file_property(self, name, file, source_url):
+        self.properties[name] = {
+            'name': name,
+            'source_url': source_url,
+            'active': True
+        }
+        self._files[name] = (os.path.basename(file.name), file,
+                             mimetypes.guess_type(file.name, strict=False)[0],
+                             {'Expires': '0'})
 
     def __repr__(self):
         return '<%s(%s)>' % (self.__class__.__name__, self[self.resource_key])
@@ -148,7 +166,13 @@ class GranoCollection(GranoObject):
             query = query.next
 
     def _create(self, data):
-        s, data = self.client.post(self.endpoint, data=data)
+        if 'files' in data:
+            data = data.copy()
+            files = data.pop('files')
+        else:
+            files = {}
+
+        s, data = self.client.post(self.endpoint, data=data, files=files)
         return self.clazz(self.client, data)
 
     def __iter__(self):

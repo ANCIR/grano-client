@@ -76,8 +76,7 @@ class Client(object):
     @property
     def session(self):
         if not hasattr(self, '_session'):
-            headers = {'Accept': 'application/json',
-                       'Content-Type': 'application/json'}
+            headers = {'Accept': 'application/json'}
             if self.api_key:
                 headers['X-Grano-API-Key'] = self.api_key
             self._session = requests.Session()
@@ -108,8 +107,8 @@ class Client(object):
         response = self.session.get(self.path(endpoint), params=params)
         return self.evaluate(response)
 
-    def post(self, endpoint, data={}):
-        data = json.dumps(data)
+    def post(self, endpoint, data={}, files={}):
+        data = {'data': json.dumps(data)}
         response = self.session.post(self.path(endpoint),
-            allow_redirects=True, data=data)
+            allow_redirects=True, data=data, files=files)
         return self.evaluate(response)
