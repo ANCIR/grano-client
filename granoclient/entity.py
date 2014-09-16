@@ -33,11 +33,6 @@ class Entity(GranoResource):
         from granoclient.relation import RelationCollection
         return RelationCollection(self.client, params={'source': self.id})
 
-    def get_graph(self, depth=2):
-        entity_graph = EntityGraph(self.client,
-            params={'id': self.id, 'depth': depth})
-        return entity_graph.get_data()
-
 
 class EntityCollection(GranoCollection):
     """ Represents all the :class:`granoclient.Entity` currently available
@@ -60,7 +55,7 @@ class EntityCollection(GranoCollection):
     def create(self, data):
         """ Create a new entity.
 
-        :param data: A dictionary with the entity attributes, ``schemata``
+        :param data: A dictionary with the entity attributes, ``schema``
             and ``properties`` are required.
         """
 
@@ -69,33 +64,6 @@ class EntityCollection(GranoCollection):
 
         if isinstance(data, Entity):
             data = data._data
-        schemata = data.get('schemata')
-        data['schemata'] = []
-        for schema in schemata:
-            if isinstance(schema, Schema):
-                schema = schema.name
-            data['schemata'].append(schema)
+        if isinstance(data.get('schema'), Schema):
+            data['schema'] = data.get('schema').name
         return self._create(data)
-
-
-class EntityGraph(object):
-    """ An entity within grano. This type serves as a node, which can be
-    used to store data (in the form of properties), and can be part of
-    relations.. """
-
-    resource_key = 'id'
-
-    def __init__(self, client, params={}):
-        self.client = client
-        self.params = params
-
-    @property
-    def endpoint(self):
-        return '/entities/%(id)s/graph?depth=%(depth)s' % {
-            'id': self.params['id'],
-            'depth': self.params['depth']
-        }
-
-    def get_data(self):
-        s, data = self.client.get(self.endpoint)
-        return data
