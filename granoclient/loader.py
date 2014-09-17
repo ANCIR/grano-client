@@ -158,7 +158,7 @@ class RelationLoader(ObjectLoader):
                 relations = list(q.results)
                 if len(relations) == 0:
                     data = {
-                        'schema': self.schemata.pop(),
+                        'schema': self.schema,
                         'source': self.source.entity.id,
                         'target': self.target.entity.id,
                         'properties': self.properties,
@@ -169,7 +169,7 @@ class RelationLoader(ObjectLoader):
                     if len(relations) > 1:
                         log.warn("Ambiguous update: %r" % relations)
                     rel = relations[0]
-                    rel._data['schema'] = self.schemata.pop()
+                    rel._data['schema'] = self.schema
                     rel._data['source'] = self.source.entity.id
                     rel._data['target'] = self.target.entity.id
                     rel._data['properties'].update(self.properties)
