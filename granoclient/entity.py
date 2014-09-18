@@ -20,6 +20,15 @@ class Entity(GranoResource):
         return Project(self.client, self['project'])
 
     @property
+    def schema(self):
+        """ The :class:`granoclient.Schema`. """
+        return Schema(self.client, self.endpoint, self['schema'])
+
+    @schema.setter
+    def set_schema(self, schema):
+        self['schema'] = schema
+
+    @property
     def inbound(self):
         """ Inbound relations as a filtered
         :class:`granoclient.RelationCollection`. """

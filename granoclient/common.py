@@ -1,6 +1,6 @@
 import os
 import mimetypes
-#from granoclient.base import Client
+
 
 class GranoObject(object):
     """ Base class for objects to layer over the grano REST API. """
@@ -10,19 +10,25 @@ class GranoObject(object):
         self._data = data
 
     def __getattribute__(self, name):
-        if name != '_data' and self._data and name in self._data:
-            return self._data[name]
-        return object.__getattribute__(self, name)
+        try:
+            return object.__getattribute__(self, name)
+        except AttributeError:
+            if name != '_data' and self._data and name in self._data:
+                return self._data[name]
+            raise
 
     def __setattr__(self, name, value):
         if hasattr(self, '_data') and self._data is not None \
-            and name in self._data.keys():
+                and name in self._data.keys():
             self._data[name] = value
         else:
             return object.__setattr__(self, name, value)
 
     def __getitem__(self, name):
         return self._data[name]
+
+    def get(self, name, default=None):
+        return self._data.get(name, default)
 
     def __setitem__(self, name, value):
         self._data[name] = value
@@ -38,15 +44,16 @@ class GranoResource(GranoObject):
         self._files = {}
 
     def reload(self):
-        """ Reload the resource from the server. This is useful when the resource is 
-        a shortened index representation which needs to be traded in for a complete
-        representation of the resource."""
+        """ Reload the resource from the server. This is useful when the
+        resource is a shortened index representation which needs to be
+        traded in for a complete representation of the resource."""
         s, self._data = self.client.get(self.endpoint)
 
     def save(self):
-        """ Update the server with any local changes, then update the local version 
-        with the returned value from the server. """
-        s, self._data = self.client.post(self.endpoint, self._data, files=self._files)
+        """ Update the server with any local changes, then update the
+        local version with the returned value from the server. """
+        s, self._data = self.client.post(self.endpoint, self._data,
+                                         files=self._files)
         # clear files so that they aren't re-uploaded
         self._files = {}
 
@@ -93,7 +100,7 @@ class Query(GranoObject):
         params = self.params.copy()
         params[name] = value
         return self.__class__(self.client, self.clazz, self.endpoint,
-            params=params)
+                              params=params)
 
     @property
     def results(self):
@@ -120,13 +127,13 @@ class Query(GranoObject):
     def next(self):
         """ Return a derived query for the next page of elements. """
         return self.__class__(self.client, self.clazz,
-            self.data.get('next_url'))
+                              self.data.get('next_url'))
 
     @property
     def prev(self):
         """ Return a derived query for the previous page of elements. """
         return self.__class__(self.client, self.clazz,
-            self.data.get('next_url'))
+                              self.data.get('next_url'))
 
     def __len__(self):
         return self.total

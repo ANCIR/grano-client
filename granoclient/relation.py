@@ -1,5 +1,5 @@
 from granoclient.common import GranoResource, GranoCollection
-
+from granoclient.schema import Schema
 
 
 class Relation(GranoResource):
@@ -17,6 +17,15 @@ class Relation(GranoResource):
         """ The :class:`granoclient.Project` to which this relation belongs. """
         from granoclient.project import Project
         return Project(self.client, self['project'])
+
+    @property
+    def schema(self):
+        """ The :class:`granoclient.Schema`. """
+        return Schema(self.client, self.endpoint, self['schema'])
+
+    @schema.setter
+    def set_schema(self, schema):
+        self['schema'] = schema
 
     @property
     def source(self):

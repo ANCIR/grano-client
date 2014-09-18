@@ -79,7 +79,6 @@ class SchemaCollection(GranoCollection):
             schema = self.create(data)
             log.info('Created schema: %s', schema.label)
 
-
     def upsert_from_file(self, file_name):
         """ Same as ``from_list``, but works on a file name. """
         # TODO: should this be a file object?
