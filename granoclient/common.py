@@ -108,6 +108,17 @@ class Query(GranoObject):
         for res in self.data.get('results'):
             yield self.clazz(self.client, res)
 
+    def __iter__(self):
+        return self.results
+
+    def limit(self, n):
+        """ Define a limit for this query. """
+        return self.filter('limit', n)
+
+    def offset(self, n):
+        """ Define an offset for this query. """
+        return self.filter('offset', n)
+
     @property
     def total(self):
         """ The total number of results available (across all pages). """
