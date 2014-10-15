@@ -30,7 +30,7 @@ class ObjectLoader(object):
         """
         self.update_criteria.add((name, only_active))
 
-    def set(self, name, value, source_url=None):
+    def set(self, name, value, source_url=None, **extra_fields):
         """ Set the value of a given property, optionally by attributing a
         source URL.
 
@@ -50,6 +50,7 @@ class ObjectLoader(object):
             'source_url': source_url,
             'active': True
         }
+        self.properties[name].update(extra_fields)
         # add it to files instead if it's a file-like object
         if callable(getattr(value, 'read', None)) and hasattr(value, 'name'):
             self.files[name] = (os.path.basename(value.name), value,
