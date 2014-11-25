@@ -94,30 +94,13 @@ class EntityLoader(ObjectLoader):
         properties have been set. """
 
         with self.lock():
-            q = self.loader.project.entities.query()
-            for name, only_active in self.update_criteria:
-                value = self.properties.get(name).get('value')
-                key = 'property-'
-                if not only_active:
-                    key = key + 'aliases-'
-                q = q.filter(key + name, value)
-
             try:
-                entities = list(q.results)
-                if len(entities) == 0:
-                    data = {
-                        'schema': self.schema,
-                        'properties': self.properties,
-                        'files': self.files
-                    }
-                    self._entity = self.loader.project.entities.create(data)
-                else:
-                    if len(entities) > 1:
-                        log.warn("Ambiguous update: %r" % entities)
-                    self._entity = entities[0]
-                    self._entity._data['properties'].update(self.properties)
-                    self._entity._files.update(self.files)
-                    self._entity.save()
+                data = {
+                    'schema': self.schema,
+                    'properties': self.properties,
+                    'files': self.files
+                }
+                self._entity = self.loader.project.entities.create(data)
             except InvalidRequest, inv:
                 log.warning("Validation error: %r", inv)
 
@@ -144,38 +127,15 @@ class RelationLoader(ObjectLoader):
         properties have been set. """
 
         with self.lock():
-            q = self.loader.project.relations.query()
-            q = q.filter('source', self.source.entity.id)
-            q = q.filter('target', self.target.entity.id)
-
-            for name, only_active in self.update_criteria:
-                value = self.properties.get(name).get('value')
-                key = 'property-'
-                if not only_active:
-                    key = key + 'aliases-'
-                q = q.filter(key + name, value)
-
             try:
-                relations = list(q.results)
-                if len(relations) == 0:
-                    data = {
-                        'schema': self.schema,
-                        'source': self.source.entity.id,
-                        'target': self.target.entity.id,
-                        'properties': self.properties,
-                        'files': self.files
-                    }
-                    self.loader.project.relations.create(data)
-                else:
-                    if len(relations) > 1:
-                        log.warn("Ambiguous update: %r" % relations)
-                    rel = relations[0]
-                    rel._data['schema'] = self.schema
-                    rel._data['source'] = self.source.entity.id
-                    rel._data['target'] = self.target.entity.id
-                    rel._data['properties'].update(self.properties)
-                    rel._files.update(self.files)
-                    rel.save()
+                data = {
+                    'schema': self.schema,
+                    'source': self.source.entity.id,
+                    'target': self.target.entity.id,
+                    'properties': self.properties,
+                    'files': self.files
+                }
+                self.loader.project.relations.create(data)
             except InvalidRequest, inv:
                 log.warning("Validation error: %r", inv)
 
