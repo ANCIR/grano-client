@@ -15,8 +15,8 @@ setup(
     classifiers=[
         ],
     keywords='data client rest grano sna ddj journalism',
-    author='Friedrich Lindenberg',
-    author_email='friedrich@pudo.org',
+    author='Code for Africa',
+    author_email='support@codeforafrica.org',
     url='https://github.com/granoproject/grano-client',
     license='MIT',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
