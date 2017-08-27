@@ -17,13 +17,13 @@ setup(
     keywords='data client rest grano sna ddj journalism',
     author='Code for Africa',
     author_email='support@codeforafrica.org',
-    url='https://github.com/granoproject/grano-client',
+    url='https://github.com/CodeForAfrica/grano-client',
     license='MIT',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     zip_safe=False,
     install_requires=[
-        "requests>=2.2.0",
-        "PyYAML==3.10"
+        "requests>=2.17.3",
+        "PyYAML>=3.12"
     ],
     tests_require=[],
     entry_points=\
